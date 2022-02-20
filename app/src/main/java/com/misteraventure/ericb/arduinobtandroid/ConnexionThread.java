@@ -58,7 +58,23 @@ public class ConnexionThread extends Thread {
     public InputStream getMbt_input_stream() {
         return mbt_input_stream;
     }
-
+public void stopConnexion(){
+    try {
+        mbt_socket.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    try {
+        mbt_input_stream.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    try {
+        mbt_output_stream.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
     public void run() {
         Log.d("connexion thread", "debut run "  );
         boolean SOCKET_OK, CONX_OK, OUTS_OK, INPS_OK;

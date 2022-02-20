@@ -13,6 +13,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 /*
 Cette activité affiche les informations envoyées par un module Arduino via un module blue tooth (HC-05)
@@ -32,10 +34,12 @@ Au bout de n fois , affichage d'un bouton de reconnection (si demandé en param�
 private TextView tv_valeur;
     private Button bt_connecter;
     private Handler connexion_handler;
+    private Handler communication_handler;
     private final static int STATUS = 1;
 
     private ConnexionThread mConnexion;
     private BluetoothSocket mbt_socket = null;
+    private CommunicationThread mCommunication;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,8 +72,42 @@ On definit un handler pour manipuler les messages BT , ce handler est utilisé p
                         if(msg.obj=="BTActif"){
                             mConnexion.start();
                         }
+                        if(msg.obj=="Connecté"){
+
+                            mCommunication = new CommunicationThread(communication_handler ,mConnexion.getMbt_socket(), "Insecure");
+                            mCommunication.start();
+                        }
 
                         tv_valeur.setText((String)(msg.obj));
+                        break;
+                }
+            }
+        };
+        /**
+         * Le Handler qui recupere les informations en provenance de la thread communication
+         */
+        communication_handler = new Handler() {
+            @Override
+
+            public void handleMessage(Message msg) {
+
+                switch (msg.what) {
+
+
+                    case Constantes.MESSAGE_READ:
+                        byte[] readBuf = (byte[]) msg.obj;
+                        // construct a string from the valid bytes in the buffer
+                        String readMessage = new String(readBuf, 0, msg.arg1);
+                        Log.i("MainActivity", "message recu = : " + readMessage  );
+
+                        tv_valeur.setText( "on a recu:" + readMessage);
+
+                        break;
+
+                    case Constantes.MESSAGE_TOAST:
+                        tv_valeur.setText( msg.getData().getString(Constantes.TOAST));
+
+
                         break;
                 }
             }
@@ -77,4 +115,17 @@ On definit un handler pour manipuler les messages BT , ce handler est utilisé p
         mConnexion = new ConnexionThread(connexion_handler);
 
     }
+
+    public void onStop(){
+        super.onStop();
+
+            mConnexion.stopConnexion();
+
+    }
+
+    public void closeBT() {
+        mConnexion.stopConnexion();
+    }
+
+
 }
