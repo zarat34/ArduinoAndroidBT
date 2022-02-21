@@ -71,7 +71,7 @@ public class CommunicationThread extends Thread {
         bundle.putString(Constantes.TOAST, "Device connection was lost");
         msg.setData(bundle);
         mHandler.sendMessage(msg);
-        mHandler.obtainMessage(STATUS, -1, -1, "Deconnecté").sendToTarget();
+        mHandler.obtainMessage(Constantes.STATUS, -1, -1, "Deconnecté").sendToTarget();
 
         mState = Constantes.STATE_NONE;
 

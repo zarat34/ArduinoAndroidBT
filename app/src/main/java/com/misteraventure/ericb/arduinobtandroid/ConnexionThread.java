@@ -102,6 +102,7 @@ public void stopConnexion(){
             } catch (IOException e) {
 
                 Log.e("mainActivity", "ioException lors de la connexion: "  , e);
+                mhandler.obtainMessage(STATUS, -1, -1, "Echec connexion socket").sendToTarget();
                 CONX_OK = false;
             }
             if (CONX_OK) {

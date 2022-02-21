@@ -12,7 +12,7 @@ public interface Constantes {
     // types de message envoyes au handle de communication
     int MESSAGE_READ = 2;
     int MESSAGE_TOAST = 5;
-
+    int STATUS = 1;
 
     String TOAST = "toast";
 }

@@ -36,7 +36,7 @@ private TextView tv_valeur;
     private Handler connexion_handler;
     private Handler communication_handler;
     private final static int STATUS = 1;
-
+    private int NbTentatives = 0;
     private ConnexionThread mConnexion;
     private BluetoothSocket mbt_socket = null;
     private CommunicationThread mCommunication;
@@ -73,11 +73,23 @@ On definit un handler pour manipuler les messages BT , ce handler est utilisé p
                             mConnexion.start();
                         }
                         if(msg.obj=="Connecté"){
-
+                            bt_connecter.setVisibility(View.INVISIBLE);
                             mCommunication = new CommunicationThread(communication_handler ,mConnexion.getMbt_socket(), "Insecure");
                             mCommunication.start();
                         }
+                        if(msg.obj=="Echec connexion socket"){
+                             // on tente une autre reconnexion (prevoir un nombre limite et un delais entre chaque essai
+                            NbTentatives ++;
+                            Log.d("MainActivity", "nb ten,tatives reconnexion : " +  NbTentatives);
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                public void run() {
+                                    // yourMethod();
+                                    reconnecter();
+                                }
+                            }, 5000);   //5 seconds
 
+                        }
                         tv_valeur.setText((String)(msg.obj));
                         break;
                 }
@@ -109,6 +121,18 @@ On definit un handler pour manipuler les messages BT , ce handler est utilisé p
 
 
                         break;
+
+                    case Constantes.STATUS:
+                        if(msg.obj=="Deconnecté") {
+                            mConnexion.interrupt();
+                            mCommunication.interrupt();
+                            //bt_connecter.setVisibility(View.VISIBLE);
+                            reconnecter();
+                            tv_valeur.setText("state none");
+                        }
+
+
+                        break;
                 }
             }
         };
@@ -127,5 +151,17 @@ On definit un handler pour manipuler les messages BT , ce handler est utilisé p
         mConnexion.stopConnexion();
     }
 
+    public void reconnecter() {
+        closeBT();
+        // mybluetooth = new MyBluetoothClass();
+        Thread.State stateBT = mConnexion.getState();
+
+        Log.d("mainActivity", "mybluetooth.getState = " + stateBT);
+        if(stateBT==Thread.State.TERMINATED){
+            tv_valeur.setText("LANCEMENT CONNEXION ");
+            mConnexion.run();};
+
+
+    }
 
 }
