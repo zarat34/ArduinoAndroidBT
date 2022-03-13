@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="stylebt.css" />
+        <title>Communication Arduino Android</title>
+    </head>
+ <p  class="titre">Communication entre un appareil android et un module arduino <br> via une carte de type HC-05 </p>
+    <body>
+        <h1>objectif</h1>
+        
+        <p>L'objectif initial est de permettre à un projet arduino de s'appuyer sur un appareil android sans intervention de l'utilisateur.</p>
+        <p>Exemples d'utilisation:</p> 
+		<ul>
+		
+		<li>se servir de l'aparaeil android comme afficheur , pour diffuser un son ... en fonction des sollicitations des capteurs connectés à l'arduino.
+		</li>
+		<li>faire activer la rotation d'un moteur en appuyant sur un bouton de l'UI android
+		</li>
+		</ul>
+	 <h1>fonctionnement</h1>
+	<h2>schema general</h2>
+	<img alt="android <--> BT HC-05 serie <--> Arduino " src="./arduinoandroid/schemageneral.PNG" />
+	<h2>cote arduino</h2>
+	<p>La communication se fait via un module HC-05 qui peut communiquer en BT avec un smartphone et qui transmet en serie à l'Arduino.</p>
+	<p>On utilise la librairie SoftwareSerial pour la communication serie entre le module HC-05 et l'arduino.</p>
+	<h3>connexion du module HC-05</h3>
+	<img alt="connexion HC05 et Arduino " src="./arduinoandroid/ConnexionHC05Arduino.png" />
+	<ul>
+	<li>TX HT-05 vers pin 11 arduino </li>
+	<li>RX HT-05 vers un pont diviseur et ensuite vers la pin 10 arduino , <br>(il est préférable d'alimenter en 3,5V ) </li>
+	<li>GND HT-05 vers GND arduino </li>
+	<li>VCC HT-05 vers sortie 5V arduino </li>
+	</ul>
+	<h3>sketch arduino</h3>
+	<h4>dans les definitions</h4>
+	<p>appel de	la librairie SoftwareSerial et creation d'un objet représentant la connexion série avec le module BT</p>
+	<div class="ligneArduino"> <p class="arduino"> #include  &#x3C;SoftwareSerial.h> </p> </div>
+	<div class="ligneArduino"><p class="arduino"> SoftwareSerial BTSerial(11,10); //Rx, Tx </p></div>
+	
+	<p>les variables et constantes qui permettront de traiter les informations reçues</p>
+	<p>La longueur maximale de la chaine reçue</p>
+	<div class="ligneArduino"><p class="arduino"> const byte MAX_STRING_LEN = 40; </p></div>
+	<p>La chaine qui va contenir les données reçues</p>
+	<div class="ligneArduino"><p class="arduino"> char inputString[MAX_STRING_LEN]; </p></div>
+	<h4>Dans le setup </h4>
+	<p>Ouverture de la connexion serie avec le module HC-05</p>
+	<div class="ligneArduino"><p class="arduino"> BTSerial.begin(9600); </p></div>
+	<h4>Dans le loop </h4>
+	<p>Envoie au module HC-05 d'une information (ici un entier "valeur"):</p>
+	<div class="ligneArduino"><p class="arduino"> BTSerial.print("\t"); </p></div>
+	<div class="ligneArduino"><p class="arduino"> BTSerial.print(valeur); </p></div>
+	<p>Reception à partir du module HC-05 d'une information :</p>
+	<p> ceci se fait par l'appel de la methode "processSerial()"
+	</p>
+	<div class="ligneArduino"><p class="arduino">traiteMessage(inputString); // utilisation de la chaine reçue </p></div>
+	<div class="ligneArduino"><p class="arduino">inputString[0] = '\0';         // vider la chaine reçue </p></div>
+    <div class="ligneArduino"><p class="arduino">strLen         = 0;            // remettre a 0 la longueur de la chaine reçue </p></div>
+	
+	<h4>methode processSerial </h4>
+	<p> Cette methode lit les caracteres envoyes par le module HC-05 ,<br>
+	elle les concatene dans la variable inputString,<br>
+	elle retourne "true" si l'envoie se termine par un CR , un LF ou /. </p>
+	<div class="ligneArduino"><p class="arduino">boolean processSerial() {</p></div>
+   <div class="ligneArduino"><p class="arduino" style="padding-left:50px;">while (BTSerial.available()) {</p></div>
+   <div class="ligneArduino"><p class="arduino" style="padding-left:70px;">char inChar = (char) BTSerial.read();</p></div> 
+    <div class="ligneArduino"><p class="arduino">// s il reste de la place on ajoute le caractere lu dans la chaine</p></div>
+   <div class="ligneArduino"><p class="arduino" style="padding-left:70px;"> if (strLen < (MAX_STRING_LEN - 1)) {</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:70px;">   inputString[strLen] = inChar;</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:70px;">  inputString[strLen+1]   = '\0';</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:70px;">  strLen++;</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:70px;">}</p></div>
+     <div class="ligneArduino"><p class="arduino">// on a termine de recevoir la chaine si on reçoit CR  ou LF</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:50px;">if ((inChar == '\n') || (inChar == '\r')|| (inChar == '/')){</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:50px;">  return true;</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:50px;">}</p></div>
+    <div class="ligneArduino"><p class="arduino" style="padding-left:50px;">return false;</p></div>
+  <div class="ligneArduino"><p class="arduino" style="padding-left:50px;">}</p></div>
+  <div class="ligneArduino"><p class="arduino" style="padding-left:50px;">return false;</p></div>
+<div class="ligneArduino"><p class="arduino" style="padding-left:10px;">}</p></div>
+	
+	<h2>cote android</h2>
+	<h3>fonctionnement general</h3>
+	<img alt="android BT " src="./arduinoandroid/schemaAndroid.PNG" />
+	<h4>dans onCreate</h4>
+	<p>definition d un handler, connexion_handler ,  qui permettra de communiquer avec la thread connexionThread </p>
+	<p>definition d un handler qui permettra de communiquer avec la thread communicationThread </p>
+	<p>instanciation d'un objet ConnexionThread  , en parametre ,connexion_handler</p>
+	<h4>dans connexion_handler</h4>
+	<p>on traite les messages reçus de  connexionThread</p>
+	<p>msg What = STATUS</p> 
+	<p>selon valeur de msg obj :</p> 
+	<ul>
+	<li>BTAbsent : on signale que le BT n'est pas géré par le device </li>
+	<li>BTisDisabled : on demande l'activation du BT ,en retour , on appelle mConnexion.launchBt() </li>
+	<li>BTActif : on lance la thread connexion_thread (mConnexion.start())</li>
+	<li>Connecté : instanciation d'un objet CommunicationThread  , en parametre ,communication_handler <br>
+		on lance la thread communication_thread (mCommunication.start())</li>
+	<li>Echec connexion socket : on tente de se reconnecter toutes les 5 secondes
+	<br> todo : limiter le nombre d'essais</li>
+	</ul>
+	<h4>dans communication_handler</h4>
+	<p>on traite les messages reçus de  communicationThread</p>
+	<p>selon msg What :</p> 
+	<ul>
+	<li>MESSAGE_READ : on recupere dans msg.arg1 la chaine reçu du module HC-05  </li>
+	<li>MESSAGE_TOAST : on affiche le message reçu de la thread communication </li>
+	<li>STATUS : on traite les messages concernant le statut de la connexion suivant la valeur de msg.obj : </li>
+	<ul>
+	<li>Deconnecté : on tente des reconnexion par appel de la methode "reconnecter()" </li>
+	</ul>
+	</ul>
+    </body>
+</html>
+	
+
