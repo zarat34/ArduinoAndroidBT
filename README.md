@@ -10,3 +10,5 @@ En cas de déconnexion , elle fait des tentatives de reconnection toutes les 5 s
 L'adresse du module BT est donnée en parametre car l'utilisation  type est l'affichage d'informations émises par une Arduino.
 
 L'utilisateur ne devrait donc pas avoir à intervenir lors de la connexion.
+
+
